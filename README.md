@@ -34,7 +34,10 @@ The system supports **role-based access control**, enabling different department
 
 **Frontend**  
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)  
-![Razor](https://img.shields.io/badge/Razor%20Views-512BD4?style=for-the-badge&logo=razorpay&logoColor=white)  
+![Razor](https://img.shields.io/badge/Razor%20Views-512BD4?style=for-the-badge&logo=razorpay&logoColor=white) 
+
+**Database**
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 
 ---
 
@@ -75,6 +78,9 @@ Satın alma, onay, stok ve depo yönetimi gibi süreçleri büyük ölçekli org
 **Frontend**  
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)  
 ![Razor](https://img.shields.io/badge/Razor%20Views-512BD4?style=for-the-badge&logo=razorpay&logoColor=white)  
+
+**Database**
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 
 ---
 
