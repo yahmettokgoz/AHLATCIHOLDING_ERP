@@ -43,7 +43,7 @@ The system supports **role-based access control**, enabling different department
 - Applying **Repository Pattern** and **Dependency Injection** in real-world projects.  
 - Using **Entity Framework Core Code First** with complex entity relationships.  
 - Implementing **role-based authorization** in enterprise applications.  
-- Creating a **scalable and maintainable** project structure for team development.  
+
 
 ---
 
@@ -83,7 +83,7 @@ Satın alma, onay, stok ve depo yönetimi gibi süreçleri büyük ölçekli org
 - **Repository Pattern** ve **Dependency Injection** kullanımı.  
 - **Entity Framework Core Code First** ile karmaşık ilişkiler kurma.  
 - **Rol bazlı yetkilendirme** ile kurumsal uygulama geliştirme.  
-- Takım çalışmasına uygun **sürdürülebilir proje yapısı** oluşturma.  
+ 
 
 ---
 
