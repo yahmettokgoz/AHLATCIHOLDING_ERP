@@ -1,0 +1,38 @@
+﻿@model HoldingERP.WebUI.Models.AssignAmirViewModel
+
+@{
+    ViewData["Title"] = "Amir Ata";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h4>Kullanıcı: @Model.UserName</h4>
+<p>Bu kullanıcı için bir üst amir seçin.</p>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="AssignAmir" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div> 
+
+            <input type="hidden" asp-for="UserId" />
+
+            <input type="hidden" asp-for="UserName" />
+
+            <div class="form-group mb-3">
+                <label asp-for="SecilenAmirId" class="control-label"></label>
+                <select asp-for="SecilenAmirId" class="form-control"
+                        asp-items="@(new SelectList(Model.AmirAdaylari, "Id", "UserName"))">
+                    <option value="">-- Amir Yok --</option>
+                </select>
+                <span asp-validation-for="SecilenAmirId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Amiri Güncelle" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Kullanıcı Listesine Geri Dön</a>
+            </div>
+        </form>
+    </div>
+</div>

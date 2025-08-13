@@ -1,0 +1,95 @@
+﻿@model HoldingERP.WebUI.Models.TalepCreateViewModel
+
+@{
+    ViewData["Title"] = "Yeni Satın Alma Talebi Oluştur";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-10">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Aciklama" class="control-label"></label>
+                <textarea asp-for="Aciklama" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Aciklama" class="text-danger"></span>
+            </div>
+
+            <hr />
+            <h4>Talep Edilen Ürünler</h4>
+            <div id="urunListesi">
+                @for (int i = 0; i < Model.TalepUrunleri.Count; i++)
+                {
+                    <div class="row urun-satiri mb-2">
+                        <div class="col-md-5">
+                            <label asp-for="TalepUrunleri[i].UrunId" class="control-label"></label>
+                            <select asp-for="TalepUrunleri[i].UrunId" class="form-control"
+                                    asp-items="@(new SelectList(Model.Urunler, "Id", "Ad"))">
+                                <option value="">-- Lütfen Bir Ürün Seçiniz --</option>
+                            </select>
+                            <span asp-validation-for="TalepUrunleri[i].UrunId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-5">
+                            <label asp-for="TalepUrunleri[i].Miktar" class="control-label"></label>
+                            <input asp-for="TalepUrunleri[i].Miktar" class="form-control" type="number" />
+                            <span asp-validation-for="TalepUrunleri[i].Miktar" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm satir-sil">Satırı Sil</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <button type="button" id="yeniSatirEkle" class="btn btn-success mt-2">Yeni Ürün Satırı Ekle</button>
+
+            <hr />
+
+            <div class="form-group">
+                <input type="submit" value="Talebi Oluştur" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Taleplerime Geri Dön</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $("#yeniSatirEkle").click(function () {
+                var index = $(".urun-satiri").length;
+                var yeniSatirHtml = `
+                    <div class="row urun-satiri mb-2">
+                        <div class="col-md-5">
+                            <label for="TalepUrunleri_${index}__UrunId">Ürün</label>
+                            <select name="TalepUrunleri[${index}].UrunId" class="form-control">
+                                <option value="">-- Lütfen Bir Ürün Seçiniz --</option>
+                                @foreach (var urun in Model.Urunler)
+                                {
+                                        <option value="@urun.Id">@urun.Ad</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="TalepUrunleri_${index}__Miktar">Miktar</label>
+                            <input name="TalepUrunleri[${index}].Miktar" class="form-control" type="number" />
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm satir-sil">Satırı Sil</button>
+                        </div>
+                    </div>`;
+
+                $("#urunListesi").append(yeniSatirHtml);
+            });
+
+            $(document).on("click", ".satir-sil", function () {
+                
+                $(this).closest(".urun-satiri").remove();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,126 @@
+﻿@model HoldingERP.WebUI.Models.TeklifGirViewModel
+
+@{
+    ViewData["Title"] = "Tedarikçi Tekliflerini Gir";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h4>Talep No: @Model.TalepId - Açıklama: @Model.TalepAciklamasi</h4>
+<hr />
+
+<form asp-action="TeklifGir" method="post">
+    <input type="hidden" asp-for="TalepId" />
+
+    <div id="teklifListesi">
+        @for (int i = 0; i < Model.GirilenTeklifler.Count; i++)
+        {
+            <div class="card mb-3 teklif-karti">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Teklif @(i + 1)</h5>
+                    @if (i > 0)
+                    {
+                        <button type="button" class="btn btn-danger btn-sm teklif-sil">Bu Teklifi Sil</button>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-3">
+                                <label asp-for="GirilenTeklifler[i].TedarikciAdi"></label>
+                                <input asp-for="GirilenTeklifler[i].TedarikciAdi" class="form-control" />
+                                <span asp-validation-for="GirilenTeklifler[i].TedarikciAdi" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Ürün Adı</th>
+                                <th>Miktar</th>
+                                <th>Birim Fiyat (TL)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int j = 0; j < Model.GirilenTeklifler[i].TeklifKalemleri.Count; j++)
+                            {
+                                <input type="hidden" asp-for="GirilenTeklifler[i].TeklifKalemleri[j].TalepUrunId" />
+                                <input type="hidden" asp-for="GirilenTeklifler[i].TeklifKalemleri[j].UrunAdi" />
+                                <input type="hidden" asp-for="GirilenTeklifler[i].TeklifKalemleri[j].Miktar" />
+                                <tr>
+                                    <td>@Model.GirilenTeklifler[i].TeklifKalemleri[j].UrunAdi</td>
+                                    <td>@Model.GirilenTeklifler[i].TeklifKalemleri[j].Miktar</td>
+                                    <td>
+                                        <input asp-for="GirilenTeklifler[i].TeklifKalemleri[j].BirimFiyat" class="form-control" type="number" step="0.01" />
+                                        <span asp-validation-for="GirilenTeklifler[i].TeklifKalemleri[j].BirimFiyat" class="text-danger"></span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button type="button" id="yeniTeklifEkle" class="btn btn-success">Yeni Tedarikçi Teklifi Ekle</button>
+    <hr />
+
+    <div class="form-group">
+        <input type="submit" value="Tüm Teklifleri Kaydet" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Satın Alma Listesine Geri Dön</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+
+            $("#yeniTeklifEkle").click(function () {
+                
+                var sonTeklifKarti = $(".teklif-karti:last");
+                var yeniTeklifKarti = sonTeklifKarti.clone(true, true);
+                var index = $(".teklif-karti").length;
+
+                yeniTeklifKarti.find('input, label, span, select').each(function() {
+                    if ($(this).attr('name')) $(this).attr('name', $(this).attr('name').replace(/\[\d+\]/, '[' + index + ']'));
+                    if ($(this).attr('id')) $(this).attr('id', $(this).attr('id').replace(/_\d+__/, '_' + index + '__'));
+                    if ($(this).attr('for')) $(this).attr('for', $(this).attr('for').replace(/_\d+__/, '_' + index + '__'));
+                    if ($(this).attr('data-valmsg-for')) $(this).attr('data-valmsg-for', $(this).attr('data-valmsg-for').replace(/\[\d+\]/, '[' + index + ']'));
+                });
+
+                
+                yeniTeklifKarti.find("h5").text("Teklif " + (index + 1));
+
+                
+                yeniTeklifKarti.find("input[type='text']").val(''); 
+                yeniTeklifKarti.find("input[type='number']").val('0'); 
+
+                if (yeniTeklifKarti.find(".teklif-sil").length === 0) {
+                    yeniTeklifKarti.find('.card-header').append('<button type="button" class="btn btn-danger btn-sm teklif-sil float-end">Bu Teklifi Sil</button>');
+                }
+
+                $("#teklifListesi").append(yeniTeklifKarti);
+            });
+
+
+
+            $(document).on("click", ".teklif-sil", function () {
+                
+                $(this).closest(".teklif-karti").remove();
+
+              
+                 $(".teklif-karti").each(function (i, card) {
+                    $(card).find("h5").text("Teklif " + (i + 1));
+                    $(card).find('input, label, span, select').each(function() {
+                        if ($(this).attr('name')) $(this).attr('name', $(this).attr('name').replace(/\[\d+\]/, '[' + i + ']'));
+                        if ($(this).attr('id')) $(this).attr('id', $(this).attr('id').replace(/_\d+__/, '_' + i + '__'));
+                        if ($(this).attr('for')) $(this).attr('for', $(this).attr('for').replace(/_\d+__/, '_' + i + '__'));
+                        if ($(this).attr('data-valmsg-for')) $(this).attr('data-valmsg-for', $(this).attr('data-valmsg-for').replace(/\[\d+\]/, '[' + i + ']'));
+                    });
+                });
+            });
+        });
+    </script>
+}

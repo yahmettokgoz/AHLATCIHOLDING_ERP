@@ -1,0 +1,20 @@
+﻿
+@{
+    ViewData["Title"] = "Değerlendirme Bekleyen Teklifler"; 
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>Aşağıdaki talepler için girilen tedarikçi tekliflerinden en uygun olanının seçilmesi gerekmektedir.</p>
+
+
+<tbody>
+    @foreach (var talep in Model)
+    {
+        <tr>
+            <td>
+                <a asp-action="TeklifleriKarsilastir" asp-route-id="@talep.Id" class="btn btn-primary btn-sm">Teklifleri Değerlendir</a>
+            </td>
+        </tr>
+    }
+</tbody>

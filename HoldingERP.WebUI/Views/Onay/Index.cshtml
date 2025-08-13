@@ -1,0 +1,39 @@
+﻿@model IEnumerable<HoldingERP.Entities.Entities.SatinAlmaTalebi>
+
+@{
+    ViewData["Title"] = "Onay Bekleyen Talepler";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Talep No</th>
+            <th>Talep Eden</th>
+            <th>Departman</th>
+            <th>Talep Tarihi</th>
+            <th>Açıklama</th>
+            <th style="width: 150px;">İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var talep in Model)
+        {
+            <tr>
+                <td>@talep.Id</td>
+                <td>
+                    @talep.TalepEdenKullanici?.AdSoyad
+                </td>
+                <td>
+                    @talep.TalepEdenKullanici?.Departman?.Ad
+                </td>
+                <td>@talep.TalepTarihi.ToShortDateString()</td>
+                <td>@talep.Aciklama</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@talep.Id" class="btn btn-success btn-sm">İncele ve Onayla</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

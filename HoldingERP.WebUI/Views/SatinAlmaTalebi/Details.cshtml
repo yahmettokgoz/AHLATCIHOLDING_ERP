@@ -1,0 +1,52 @@
+﻿@model HoldingERP.Entities.Entities.SatinAlmaTalebi
+
+@{
+    ViewData["Title"] = "Talep Detayları";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <h4>Talep Bilgileri</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Talep No</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
+
+        <dt class="col-sm-3">Talep Tarihi</dt>
+        <dd class="col-sm-9">@Model.TalepTarihi.ToString("g")</dd>
+
+        <dt class="col-sm-3">Durum</dt>
+        <dd class="col-sm-9"><strong>@Model.Durum</strong></dd>
+
+        <dt class="col-sm-3">Açıklama</dt>
+        <dd class="col-sm-9">@Model.Aciklama</dd>
+    </dl>
+</div>
+
+<hr />
+
+<h4>Talep Edilen Ürünler</h4>
+<table class="table">
+    <thead class="thead-light">
+        <tr>
+            <th>Ürün Adı</th>
+            <th>Miktar</th>
+            <th>Birim</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var urun in Model.TalepUrunleri)
+        {
+            <tr>
+                <td>@urun.Urun?.Ad</td>
+                <td>@urun.Miktar</td>
+                <td>@urun.Urun?.Birim</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Taleplerime Geri Dön</a>
+</div>

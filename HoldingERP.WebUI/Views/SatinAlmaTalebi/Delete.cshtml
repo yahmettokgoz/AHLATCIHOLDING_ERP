@@ -1,0 +1,25 @@
+﻿@model HoldingERP.Entities.Entities.SatinAlmaTalebi
+
+@{
+    ViewData["Title"] = "Talebi Sil";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h3>Aşağıdaki talebi silmek (geri çekmek) istediğinizden emin misiniz?</h3>
+<div>
+    <h4>Talep No: @Model.Id</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Açıklama</dt>
+        <dd class="col-sm-9">@Model.Aciklama</dd>
+        <dt class="col-sm-3">Durum</dt>
+        <dd class="col-sm-9">@Model.Durum</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Evet, Sil" class="btn btn-danger" /> |
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
+</div>

@@ -1,0 +1,80 @@
+﻿@model HoldingERP.WebUI.Models.TeklifKarsilastirViewModel
+
+@{
+    ViewData["Title"] = "Teklifleri Karşılaştır";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h4>Talep No: @Model.Talep.Id - Açıklama: @Model.Talep.Aciklama</h4>
+<hr />
+
+@if (!Model.Teklifler.Any())
+{
+    <div class="alert alert-warning">Bu talep için henüz bir teklif girilmemiş.</div>
+    <a asp-action="TeklifGir" asp-route-id="@Model.Talep.Id" class="btn btn-primary">İlk Teklifi Gir</a>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered text-center">
+            <thead class="thead-light">
+                <tr>
+                    <th style="width: 20%;" class="align-middle">ÜRÜN ADI</th>
+                    @foreach (var teklif in Model.Teklifler)
+                    {
+                        <th>
+                            <div>@teklif.Tedarikci.Ad</div>
+                            <small class="text-muted">@teklif.TeklifTarihi.ToShortDateString()</small>
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var talepUrunu in Model.Talep.TalepUrunleri)
+                {
+                    <tr>
+                        <td class="text-start"><strong>@talepUrunu.Urun.Ad</strong> <br /><small class="text-muted">(@talepUrunu.Miktar @talepUrunu.Urun.Birim)</small></td>
+                        @foreach (var teklif in Model.Teklifler)
+                        {
+                            var teklifKalemi = teklif.TeklifKalemleri.FirstOrDefault(k => k.UrunId == talepUrunu.UrunId);
+                            <td>
+                                @if (teklifKalemi != null)
+                                {
+                                    <strong>@teklifKalemi.BirimFiyat.ToString("C")</strong>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+            <tfoot class="table-group-divider">
+                <tr>
+                    <th class="text-end">TOPLAM FİYAT</th>
+                    @foreach (var teklif in Model.Teklifler)
+                    {
+                        <th>@teklif.ToplamFiyat.ToString("C")</th>
+                    }
+                </tr>
+                <tr>
+                    <th class="text-end">İŞLEMLER</th>
+                    @foreach (var teklif in Model.Teklifler)
+                    {
+                        <td>
+                            <form asp-action="TeklifiSec" method="post">
+                                <input type="hidden" name="secilenTeklifId" value="@teklif.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Bu Teklifi Seç</button>
+                            </form>
+                        </td>
+                    }
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}
+
+<hr />
+<a asp-action="TeklifleriDegerlendirListesi" class="btn btn-secondary">Listeye Geri Dön</a>

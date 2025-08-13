@@ -1,0 +1,27 @@
+﻿@model HoldingERP.Entities.Entities.Departman
+
+@{
+    ViewData["Title"] = "Departman Sil";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h3>Bu departmanı silmek istediğinizden emin misiniz?</h3>
+<div>
+    <h4>Departman Bilgileri</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Departman Adı
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Ad
+        </dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Sil" class="btn btn-danger" /> |
+        <a asp-action="Index" class="btn btn-secondary">Listeye Geri Dön</a>
+    </form>
+</div>

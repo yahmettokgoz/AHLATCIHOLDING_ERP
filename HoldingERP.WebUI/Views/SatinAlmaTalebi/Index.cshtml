@@ -1,0 +1,71 @@
+﻿@model IEnumerable<HoldingERP.Entities.Entities.SatinAlmaTalebi>
+
+
+@{
+    ViewData["Title"] = "Satın Alma Taleplerim";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Yeni Talep Oluştur</a>
+</p>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>
+                Talep No
+            </th>
+            <th>
+                Talep Tarihi
+            </th>
+            <th>
+                Durum
+            </th>
+            <th>
+                Açıklama
+            </th>
+            <th style="width: 250px;">İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.Id
+                </td>
+                <td>
+                    @item.TalepTarihi.ToShortDateString()
+                </td>
+                <td>
+                    @item.Durum
+                </td>
+                <td>
+                    @item.Aciklama
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Düzenle</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detay</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
