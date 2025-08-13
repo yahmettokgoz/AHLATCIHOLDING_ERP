@@ -47,14 +47,9 @@ The system supports **role-based access control**, enabling different department
 
 ---
 
-## 📷 Screenshots
-> You can add screenshots of your project here:  
-![Dashboard Screenshot](images/dashboard.png)  
-![Login Page Screenshot](images/login.png)  
 
----
 
-# 🇹🇷 AHLATCı HOLDING ERP – Çok Departmanlı Kurumsal Kaynak Planlama Sistemi
+# 🇹🇷 AHLATCI HOLDING ERP – Çok Departmanlı Kurumsal Kaynak Planlama Sistemi
 
 Bu proje, **ASP.NET Core MVC** kullanılarak **N-Katmanlı Mimari** ile geliştirilmiş çok modüllü bir ERP sistemidir.  
 Satın alma, onay, stok ve depo yönetimi gibi süreçleri büyük ölçekli organizasyonlarda verimli hale getirmek için tasarlanmıştır.  
