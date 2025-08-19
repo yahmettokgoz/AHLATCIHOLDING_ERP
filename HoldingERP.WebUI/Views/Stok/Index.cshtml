@@ -19,6 +19,7 @@
             <th>Birim</th>
             <th>Lokasyon</th>
             <th>Son Güncelleme</th>
+            <th>İşlemler</th>
         </tr>
     </thead>
     <tbody>
@@ -32,6 +33,9 @@
                 <td>@stok.Urun?.Birim</td>
                 <td>@stok.Lokasyon</td>
                 <td>@stok.GuncellemeTarihi.ToString("g")</td>
+                <td>
+                    <a asp-action="StokCikis" asp-route-id="@stok.Id" class="btn btn-danger btn-sm">Stok Çıkışı Yap</a>
+                </td>
             </tr>
         }
     </tbody>
