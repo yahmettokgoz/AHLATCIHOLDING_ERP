@@ -11,6 +11,8 @@
 <form asp-action="TeklifGir" method="post">
     <input type="hidden" asp-for="TalepId" />
 
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
     <div id="teklifListesi">
         @for (int i = 0; i < Model.GirilenTeklifler.Count; i++)
         {
@@ -23,16 +25,11 @@
                     }
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group mb-3">
-                                <label asp-for="GirilenTeklifler[i].TedarikciAdi"></label>
-                                <input asp-for="GirilenTeklifler[i].TedarikciAdi" class="form-control" />
-                                <span asp-validation-for="GirilenTeklifler[i].TedarikciAdi" class="text-danger"></span>
-                            </div>
-                        </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="GirilenTeklifler[i].TedarikciAdi"></label>
+                        <input asp-for="GirilenTeklifler[i].TedarikciAdi" class="form-control" />
+                        <span asp-validation-for="GirilenTeklifler[i].TedarikciAdi" class="text-danger"></span>
                     </div>
-
                     <table class="table table-sm">
                         <thead>
                             <tr>
@@ -76,51 +73,67 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function () {
-
+          
             $("#yeniTeklifEkle").click(function () {
-                
-                var sonTeklifKarti = $(".teklif-karti:last");
+                var listContainer = $("#teklifListesi");
+                var newIndex = listContainer.find(".teklif-karti").length;
+                var sonTeklifKarti = listContainer.find(".teklif-karti:last");                
                 var yeniTeklifKarti = sonTeklifKarti.clone(true, true);
-                var index = $(".teklif-karti").length;
 
-                yeniTeklifKarti.find('input, label, span, select').each(function() {
-                    if ($(this).attr('name')) $(this).attr('name', $(this).attr('name').replace(/\[\d+\]/, '[' + index + ']'));
-                    if ($(this).attr('id')) $(this).attr('id', $(this).attr('id').replace(/_\d+__/, '_' + index + '__'));
-                    if ($(this).attr('for')) $(this).attr('for', $(this).attr('for').replace(/_\d+__/, '_' + index + '__'));
-                    if ($(this).attr('data-valmsg-for')) $(this).attr('data-valmsg-for', $(this).attr('data-valmsg-for').replace(/\[\d+\]/, '[' + index + ']'));
-                });
+                updateElementIndexes(yeniTeklifKarti, newIndex);
 
-                
-                yeniTeklifKarti.find("h5").text("Teklif " + (index + 1));
+                yeniTeklifKarti.find("input[type='text']").val("");
+                yeniTeklifKarti.find("input[type='number']").val("0");
 
-                
-                yeniTeklifKarti.find("input[type='text']").val(''); 
-                yeniTeklifKarti.find("input[type='number']").val('0'); 
+                yeniTeklifKarti.find("h5").text("Teklif " + (newIndex + 1));
 
                 if (yeniTeklifKarti.find(".teklif-sil").length === 0) {
-                    yeniTeklifKarti.find('.card-header').append('<button type="button" class="btn btn-danger btn-sm teklif-sil float-end">Bu Teklifi Sil</button>');
+                     yeniTeklifKarti.find('.card-header').append('<button type="button" class="btn btn-danger btn-sm teklif-sil float-end">Bu Teklifi Sil</button>');
                 }
 
-                $("#teklifListesi").append(yeniTeklifKarti);
+                listContainer.append(yeniTeklifKarti);
+
+                var form = $("form");
+                form.removeData("validator");
+                form.removeData("unobtrusiveValidation");
+                $.validator.unobtrusive.parse(form);
             });
-
-
 
             $(document).on("click", ".teklif-sil", function () {
-                
                 $(this).closest(".teklif-karti").remove();
-
-              
-                 $(".teklif-karti").each(function (i, card) {
-                    $(card).find("h5").text("Teklif " + (i + 1));
-                    $(card).find('input, label, span, select').each(function() {
-                        if ($(this).attr('name')) $(this).attr('name', $(this).attr('name').replace(/\[\d+\]/, '[' + i + ']'));
-                        if ($(this).attr('id')) $(this).attr('id', $(this).attr('id').replace(/_\d+__/, '_' + i + '__'));
-                        if ($(this).attr('for')) $(this).attr('for', $(this).attr('for').replace(/_\d+__/, '_' + i + '__'));
-                        if ($(this).attr('data-valmsg-for')) $(this).attr('data-valmsg-for', $(this).attr('data-valmsg-for').replace(/\[\d+\]/, '[' + i + ']'));
-                    });
+                $("#teklifListesi").find(".teklif-karti").each(function (index, element) {
+                    updateElementIndexes($(element), index);
+                    $(element).find("h5").text("Teklif " + (index + 1));
                 });
             });
+
+            function updateElementIndexes(element, index) {
+                element.find('input, label, span, select').each(function () {
+                    var currentName = $(this).attr('name');
+                    if (currentName) {
+                        var newName = currentName.replace(/\[\d+\]/, '[' + index + ']');
+                        $(this).attr('name', newName);
+                    }
+                   
+                    var currentId = $(this).attr('id');
+                    if (currentId) {
+                        var newId = currentId.replace(/_\d+__/, '_' + index + '__');
+                        $(this).attr('id', newId);
+                    }
+                    
+                    var currentFor = $(this).attr('for');
+                    if (currentFor) {
+                        var newFor = currentFor.replace(/_\d+__/, '_' + index + '__');
+                        $(this).attr('for', newFor);
+                    }
+                   
+                    var currentValFor = $(this).attr('data-valmsg-for');
+                    if (currentValFor) {
+                         var newValFor = currentValFor.replace(/\[\d+\]/, '[' + index + ']');
+                         $(this).attr('data-valmsg-for', newValFor);
+                    }
+                });
+            }
         });
     </script>
 }

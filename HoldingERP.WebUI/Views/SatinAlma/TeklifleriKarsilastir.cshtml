@@ -33,7 +33,11 @@ else
                 @foreach (var talepUrunu in Model.Talep.TalepUrunleri)
                 {
                     <tr>
-                        <td class="text-start"><strong>@talepUrunu.Urun.Ad</strong> <br /><small class="text-muted">(@talepUrunu.Miktar @talepUrunu.Urun.Birim)</small></td>
+                        <td class="text-start">
+                            <strong>@talepUrunu.Urun.Ad</strong> <br />
+                            <small class="text-muted">(@talepUrunu.Miktar @talepUrunu.Urun.Birim)</small>
+                        </td>
+
                         @foreach (var teklif in Model.Teklifler)
                         {
                             var teklifKalemi = teklif.TeklifKalemleri.FirstOrDefault(k => k.UrunId == talepUrunu.UrunId);

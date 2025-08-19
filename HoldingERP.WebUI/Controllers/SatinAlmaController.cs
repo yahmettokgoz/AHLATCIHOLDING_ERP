@@ -1,49 +1,51 @@
 ﻿using HoldingERP.Business.Abstract;
-using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+using HoldingERP.Entities.Concrete;
 using HoldingERP.WebUI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static HoldingERP.Entities.Entities.Teklif;
-
+using static HoldingERP.Entities.Concrete.Teklif;
 
 namespace HoldingERP.WebUI.Controllers
 {
     [Authorize(Roles = "Admin, Satın Almacı")]
     public class SatinAlmaController : Controller
     {
-        private readonly IGenericService<SatinAlmaTalebi> _talepService;
-        private readonly IGenericService<Tedarikci> _tedarikciService;
-        private readonly IGenericService<Teklif> _teklifService;
-        private readonly IGenericService<SatinAlmaTalepUrunu> _talepUrunService;
+        private readonly ITalepService _talepService;
+        private readonly ITedarikciService _tedarikciService;
+        private readonly ITeklifService _teklifService;
+        private readonly ITalepUrunService _talepUrunService;
+        private readonly ISatinAlmaService _satinAlmaService;
         private readonly UserManager<Kullanici> _userManager;
 
         public SatinAlmaController(
-            IGenericService<SatinAlmaTalebi> talepService,
-            IGenericService<Tedarikci> tedarikciService,
-            IGenericService<Teklif> teklifService,
-            IGenericService<SatinAlmaTalepUrunu> talepUrunService,
+            ITalepService talepService,
+            ITedarikciService tedarikciService,
+            ITeklifService teklifService,
+            ITalepUrunService talepUrunService,
+            ISatinAlmaService satinAlmaService,
             UserManager<Kullanici> userManager)
         {
             _talepService = talepService;
             _tedarikciService = tedarikciService;
             _teklifService = teklifService;
             _talepUrunService = talepUrunService;
+            _satinAlmaService = satinAlmaService;
             _userManager = userManager;
         }
 
         public IActionResult Index()
         {
-            var satinAlmadakiTalepler = _talepService.GetAllIncluding(
-                t => t.TalepEdenKullanici.Departman
-            ).Where(t => t.Durum == TalepDurumu.SatınAlmada);
-
+            var satinAlmadakiTalepler = _talepService.GetAll()
+                .Include(t => t.TalepEdenKullanici.Departman)
+                .Where(t => t.Durum == TalepDurumu.SatınAlmada)
+                .ToList();
             return View(satinAlmadakiTalepler);
         }
 
@@ -59,13 +61,6 @@ namespace HoldingERP.WebUI.Controllers
                 return RedirectToAction("Index");
             }
 
-            var teklifKalemleri = talep.TalepUrunleri.Select(tu => new TeklifKalemModel
-            {
-                TalepUrunId = tu.Id,
-                UrunAdi = tu.Urun?.Ad ?? "Ürün Bulunamadı",
-                Miktar = tu.Miktar
-            }).ToList();
-
             var model = new TeklifGirViewModel
             {
                 TalepId = talep.Id,
@@ -73,97 +68,125 @@ namespace HoldingERP.WebUI.Controllers
                 TalepUrunleri = talep.TalepUrunleri,
                 GirilenTeklifler = new List<TeklifModel>
                 {
-                    new TeklifModel { TeklifKalemleri = teklifKalemleri }
+                    new TeklifModel
+                    {
+                        TeklifKalemleri = talep.TalepUrunleri.Select(tu => new TeklifKalemModel
+                        {
+                            TalepUrunId = tu.Id,
+                            UrunAdi = tu.Urun?.Ad ?? "Ürün Bulunamadı",
+                            Miktar = tu.Miktar
+                        }).ToList()
+                    }
                 }
             };
-
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TeklifGir(TeklifGirViewModel model)
-        {
+        {         
+            var orjinalTalep = _talepService.GetAll()
+                                            .Include(t => t.TalepUrunleri).ThenInclude(tu => tu.Urun)
+                                            .FirstOrDefault(t => t.Id == model.TalepId);
+
+            if (orjinalTalep == null) return NotFound();
+
             if (ModelState.IsValid)
             {
                 var currentUser = await _userManager.GetUserAsync(User);
-                var orjinalTalepUrunleri = _talepUrunService.Find(t => t.SatinAlmaTalebiId == model.TalepId).ToList();
 
-                foreach (var teklifModel in model.GirilenTeklifler)
+                var gecerliTeklifler = model.GirilenTeklifler
+                    .Where(tm => !string.IsNullOrWhiteSpace(tm.TedarikciAdi) && tm.TeklifKalemleri.Any(k => k.BirimFiyat > 0))
+                    .ToList();
+
+                if (!gecerliTeklifler.Any())
                 {
-                    if (string.IsNullOrWhiteSpace(teklifModel.TedarikciAdi) || !teklifModel.TeklifKalemleri.Any(k => k.BirimFiyat > 0))
-                        continue;
-
-                    var tedarikci = _tedarikciService.Get(t => t.Ad.ToLower() == teklifModel.TedarikciAdi.ToLower());
- 
-                    if (tedarikci == null)
+                    ModelState.AddModelError("", "Lütfen en az bir tedarikçi için geçerli bir fiyat teklifi giriniz.");
+                }
+                else
+                {
+                    foreach (var teklifModel in gecerliTeklifler)
                     {
-                        tedarikci = new Tedarikci { Ad = teklifModel.TedarikciAdi, IletisimBilgisi = "Yeni Kayıt" };
-                        _tedarikciService.Create(tedarikci);
-                        _tedarikciService.SaveChanges(); 
-                    }
-
-                    var yeniTeklif = new Teklif
-                    {
-                        SatinAlmaTalebiId = model.TalepId,
-                        TedarikciId = tedarikci.Id, 
-                        TeklifYapanKullaniciId = currentUser.Id,
-                        TeklifTarihi = DateTime.Now,
-                        Durum = TeklifDurumu.Beklemede,
-                        ParaBirimi = "TRY",
-                        TeklifKalemleri = new List<TeklifKalem>()
-                    };
-
-                    foreach (var kalemModel in teklifModel.TeklifKalemleri)
-                    {
-                        var orjinalUrun = orjinalTalepUrunleri.FirstOrDefault(u => u.Id == kalemModel.TalepUrunId);
-                        if (orjinalUrun != null && kalemModel.BirimFiyat > 0)
+                        var tedarikci = _tedarikciService.Get(t => t.Ad.ToLower() == teklifModel.TedarikciAdi.ToLower());
+                        if (tedarikci == null)
                         {
-                            yeniTeklif.TeklifKalemleri.Add(new TeklifKalem
-                            {
-                                UrunId = orjinalUrun.UrunId,
-                                Miktar = kalemModel.Miktar,
-                                BirimFiyat = kalemModel.BirimFiyat
-                            });
+                            tedarikci = new Tedarikci { Ad = teklifModel.TedarikciAdi, IletisimBilgisi = "Yeni Kayıt" };
+                            _tedarikciService.Create(tedarikci);
+                            _tedarikciService.SaveChanges(); 
                         }
+
+                        var yeniTeklif = new Teklif
+                        {
+                            SatinAlmaTalebiId = model.TalepId,
+                            TedarikciId = tedarikci.Id,
+                            TeklifYapanKullaniciId = currentUser.Id,
+                            TeklifTarihi = DateTime.Now,
+                            Durum = TeklifDurumu.Beklemede,
+                            ParaBirimi = "TRY",
+                            TeklifKalemleri = new List<TeklifKalem>()
+                        };
+
+                       
+                        foreach (var kalemModel in teklifModel.TeklifKalemleri)
+                        {
+                            var orjinalTalepUrunu = orjinalTalep.TalepUrunleri.FirstOrDefault(u => u.Id == kalemModel.TalepUrunId);
+                            if (orjinalTalepUrunu != null && kalemModel.BirimFiyat > 0)
+                            {
+                                yeniTeklif.TeklifKalemleri.Add(new TeklifKalem
+                                {
+                                    UrunId = orjinalTalepUrunu.UrunId,
+                                    Miktar = kalemModel.Miktar,
+                                    BirimFiyat = kalemModel.BirimFiyat
+                                });
+                            }
+                        }
+
+                        yeniTeklif.ToplamFiyat = yeniTeklif.TeklifKalemleri.Sum(k => k.Miktar * k.BirimFiyat);
+                        _teklifService.Create(yeniTeklif);
                     }
 
-                    yeniTeklif.ToplamFiyat = yeniTeklif.TeklifKalemleri.Sum(k => k.Miktar * k.BirimFiyat);
-                    _teklifService.Create(yeniTeklif);
+                    
+                    orjinalTalep.Durum = TalepDurumu.TeklifBekleniyor;
+                    _talepService.Update(orjinalTalep);
+                    _talepService.SaveChanges();
+
+                    TempData["SuccessMessage"] = "Teklifler başarıyla kaydedildi.";
+                    return RedirectToAction("Index");
                 }
-
-                var talep = _talepService.GetById(model.TalepId);
-                if (talep != null)
-                {
-                    talep.Durum = TalepDurumu.TeklifBekleniyor;
-                    _talepService.Update(talep);
-                }
-
-                _talepService.SaveChanges();
-
-                TempData["SuccessMessage"] = "Teklifler başarıyla kaydedildi.";
-                return RedirectToAction("Index");
             }
 
-            var orjinalTalep = _talepService.GetAll().Include(t => t.TalepUrunleri).ThenInclude(tu => tu.Urun).FirstOrDefault(t => t.Id == model.TalepId);
-            if (orjinalTalep != null)
+            model.TalepUrunleri = orjinalTalep.TalepUrunleri;
+            model.TalepAciklamasi = orjinalTalep.Aciklama;
+
+            foreach (var teklifModel in model.GirilenTeklifler)
             {
-                model.TalepUrunleri = orjinalTalep.TalepUrunleri;
+                foreach (var kalemModel in teklifModel.TeklifKalemleri)
+                {
+                    if (string.IsNullOrEmpty(kalemModel.UrunAdi))
+                    {
+                        var orjinalUrun = orjinalTalep.TalepUrunleri.FirstOrDefault(u => u.Id == kalemModel.TalepUrunId);
+                        kalemModel.UrunAdi = orjinalUrun?.Urun?.Ad ?? "Bilinmeyen Ürün";
+                    }
+                }
             }
+
             return View(model);
         }
 
+
         public IActionResult TeklifleriDegerlendirListesi()
         {
-            var teklifBekleyenTalepler = _talepService.GetAllIncluding(
-                t => t.TalepEdenKullanici.Departman
-            ).Where(t => t.Durum == TalepDurumu.TeklifBekleniyor);
-
+            var teklifBekleyenTalepler = _talepService.GetAll()
+                .Include(t => t.TalepEdenKullanici.Departman)
+                .Where(t => t.Durum == TalepDurumu.TeklifBekleniyor)
+                .ToList();
             return View(teklifBekleyenTalepler);
         }
 
         public IActionResult TeklifleriKarsilastir(int id)
         {
+            
             var talep = _talepService.GetAll()
                 .Include(t => t.TalepUrunleri).ThenInclude(tu => tu.Urun)
                 .FirstOrDefault(t => t.Id == id);
@@ -172,11 +195,11 @@ namespace HoldingERP.WebUI.Controllers
             {
                 return NotFound();
             }
-
-            var teklifler = _teklifService.GetAllIncluding(
-                    t => t.Tedarikci,
-                    t => t.TeklifKalemleri)
+ 
+            var teklifler = _teklifService.GetAll()
                 .Where(t => t.SatinAlmaTalebiId == id)
+                .Include(t => t.Tedarikci)
+                .Include(t => t.TeklifKalemleri)
                 .ToList();
 
             var model = new TeklifKarsilastirViewModel
@@ -192,45 +215,8 @@ namespace HoldingERP.WebUI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult TeklifiSec(int secilenTeklifId)
         {
-            var secilenTeklif = _teklifService.GetById(secilenTeklifId);
-            if (secilenTeklif == null) return NotFound();
-
-            var anaTalep = _talepService.GetById(secilenTeklif.SatinAlmaTalebiId);
-            if (anaTalep == null) return NotFound();
-
-            var digerTeklifler = _teklifService
-                .Find(t => t.SatinAlmaTalebiId == anaTalep.Id && t.Id != secilenTeklifId)
-                .ToList();
-
-            foreach (var teklif in digerTeklifler)
-            {
-                teklif.Durum = TeklifDurumu.Reddedildi;
-                _teklifService.Update(teklif);
-            }
-
-
-            decimal limit = 100000; 
-
-            if (secilenTeklif.ToplamFiyat > limit)
-            {
-                secilenTeklif.Durum = TeklifDurumu.Beklemede; 
-                anaTalep.Durum = TalepDurumu.YoneticiOnayiBekliyor;
-
-                TempData["SuccessMessage"] = $"Teklif seçildi. Tutar ({secilenTeklif.ToplamFiyat:C}) limiti aştığı için yönetici onayına gönderildi.";
-            }
-            else
-            {
-                secilenTeklif.Durum = TeklifDurumu.Onaylandi; 
-                anaTalep.Durum = TalepDurumu.Onaylandi;
-
-                TempData["SuccessMessage"] = $"Teklif başarıyla seçildi ve talep onaylandı.";
-            }
-
-            _teklifService.Update(secilenTeklif);
-            _talepService.Update(anaTalep);
-
-            _teklifService.SaveChanges();
-
+            var resultMessage = _satinAlmaService.TeklifiSecVeSüreciIlerlet(secilenTeklifId);
+            TempData["SuccessMessage"] = resultMessage;
             return RedirectToAction("TeklifleriDegerlendirListesi");
         }
     }

@@ -1,5 +1,5 @@
 ﻿using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+using HoldingERP.Entities.Concrete;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 

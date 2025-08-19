@@ -3,7 +3,7 @@ using HoldingERP.Business.Concrete;
 using HoldingERP.DataAccess.Abstract;
 using HoldingERP.DataAccess.Concrete;
 using HoldingERP.DataAccess.Context;
-using HoldingERP.Entities;
+using HoldingERP.Entities.Concrete;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,17 +12,26 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddIdentity<Kullanici, Rol>()
-    .AddEntityFrameworkStores<AppDbContext>();
-
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddIdentity<Kullanici, Rol>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(EFRepository<>));
 
-builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericManager<>));
-
+builder.Services.AddScoped<IDepartmanService, DepartmanManager>();
+builder.Services.AddScoped<IFaturaService, FaturaManager>();
+builder.Services.AddScoped<ISatinAlmaService, SatinAlmaManager>();
+builder.Services.AddScoped<IStokHareketiService, StokHareketiManager>();
+builder.Services.AddScoped<IStokService, StokManager>();
+builder.Services.AddScoped<ITalepService, TalepManager>();
+builder.Services.AddScoped<ITedarikciService, TedarikciManager>();
+builder.Services.AddScoped<ITeklifService, TeklifManager>();
+builder.Services.AddScoped<IUrunService, UrunManager>();
+builder.Services.AddScoped<ITalepUrunService, TalepUrunManager>();
 
 var app = builder.Build();
 
@@ -30,7 +39,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -39,11 +47,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -52,11 +62,10 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<Kullanici>>();
     var roleManager = services.GetRequiredService<RoleManager<Rol>>();
 
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 
     await DbInitializer.Initialize(context, userManager, roleManager);
 }
-
 
 
 app.Run();

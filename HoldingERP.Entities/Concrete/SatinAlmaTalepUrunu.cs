@@ -4,18 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HoldingERP.Entities.Entities
+namespace HoldingERP.Entities.Concrete
 {
-    public class Stok
+    public class SatinAlmaTalepUrunu
     {
 
         public int Id { get; set; }
         public decimal Miktar { get; set; }
-        public string? Lokasyon { get; set; } 
-        public DateTime GuncellemeTarihi { get; set; }
+        public int SatinAlmaTalebiId { get; set; }
         public int UrunId { get; set; }
-        public virtual Urun? Urun { get; set; } 
-
+        public virtual SatinAlmaTalebi SatinAlmaTalebi { get; set; }
+        public virtual Urun Urun { get; set; }
     }
-    }
-
+}

@@ -1,4 +1,4 @@
-﻿using HoldingERP.Entities.Entities;
+﻿using HoldingERP.Entities.Concrete;
 using System.ComponentModel.DataAnnotations;
 
 namespace HoldingERP.WebUI.Models

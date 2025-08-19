@@ -1,25 +1,24 @@
 ﻿using HoldingERP.Business.Abstract;
-using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+using HoldingERP.Entities.Concrete;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading.Tasks;
-
 
 namespace HoldingERP.WebUI.Controllers
 {
     [Authorize(Roles = "Admin, Onaycı")]
     public class OnayController : Controller
     {
-        private readonly IGenericService<SatinAlmaTalebi> _talepService;
-        private readonly IGenericService<Teklif> _teklifService;
+        private readonly ITalepService _talepService;
+        private readonly ITeklifService _teklifService;
         private readonly UserManager<Kullanici> _userManager;
 
         public OnayController(
-            IGenericService<SatinAlmaTalebi> talepService,
-            IGenericService<Teklif> teklifService,
+            ITalepService talepService,
+            ITeklifService teklifService,
             UserManager<Kullanici> userManager)
         {
             _talepService = talepService;
@@ -35,26 +34,30 @@ namespace HoldingERP.WebUI.Controllers
                                                    .Select(u => u.Id)
                                                    .ToListAsync();
 
-            var sorgu = _talepService.GetAllIncluding(
-                talep => talep.TalepEdenKullanici.Departman
-            );
+            var sorgu = _talepService.GetAll()
+                .Include(t => t.TalepEdenKullanici)
+                .ThenInclude(k => k.Departman);
 
             var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
 
+            IQueryable<SatinAlmaTalebi> filtrelenmisSorgu; 
+
             if (isAdmin)
             {
-                sorgu = sorgu.Where(t => t.Durum == TalepDurumu.AmirOnayiBekliyor ||
-                                         t.Durum == TalepDurumu.YoneticiOnayiBekliyor);
+               
+                filtrelenmisSorgu = sorgu.Where(t => t.Durum == TalepDurumu.AmirOnayiBekliyor ||
+                                                     t.Durum == TalepDurumu.YoneticiOnayiBekliyor);
             }
             else
             {
-                sorgu = sorgu.Where(t =>
+               
+                filtrelenmisSorgu = sorgu.Where(t =>
                     (t.Durum == TalepDurumu.AmirOnayiBekliyor && astlarinIdleri.Contains(t.TalepEdenKullaniciId)) ||
                     (t.Durum == TalepDurumu.YoneticiOnayiBekliyor)
                 );
             }
 
-            var onayBekleyenTalepler = await sorgu.ToListAsync();
+            var onayBekleyenTalepler = await filtrelenmisSorgu.ToListAsync();
             return View(onayBekleyenTalepler);
         }
 

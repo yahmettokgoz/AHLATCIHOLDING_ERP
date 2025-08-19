@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HoldingERP.Entities.Entities
+namespace HoldingERP.Entities.Concrete
 {
     public enum TalepDurumu
     {
@@ -32,7 +32,7 @@ namespace HoldingERP.Entities.Entities
         public int Id { get; set; }
         public DateTime TalepTarihi { get; set; }
         public TalepDurumu Durum { get; set; }
-        public string Aciklama { get; set; }
+        public string? Aciklama { get; set; }
         public int TalepEdenKullaniciId { get; set; }
         public virtual Kullanici TalepEdenKullanici { get; set; }
         public virtual ICollection<SatinAlmaTalepUrunu> TalepUrunleri { get; set; }

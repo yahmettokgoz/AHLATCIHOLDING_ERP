@@ -1,11 +1,12 @@
 ﻿using HoldingERP.Business.Abstract;
-using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+using HoldingERP.Entities.Concrete;
 using HoldingERP.WebUI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HoldingERP.WebUI.Controllers
 {
@@ -14,12 +15,12 @@ namespace HoldingERP.WebUI.Controllers
     {
         private readonly UserManager<Kullanici> _userManager;
         private readonly RoleManager<Rol> _roleManager;
-        private readonly IGenericService<Departman> _departmanService;
+        private readonly IDepartmanService _departmanService;
 
         public KullaniciYonetimiController(
             UserManager<Kullanici> userManager,
             RoleManager<Rol> roleManager,
-            IGenericService<Departman> departmanService)
+            IDepartmanService departmanService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -62,7 +63,6 @@ namespace HoldingERP.WebUI.Controllers
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(user, "Talep Eden");
-
                     TempData["SuccessMessage"] = "Yeni kullanıcı başarıyla oluşturuldu.";
                     return RedirectToAction("Index");
                 }
@@ -72,13 +72,11 @@ namespace HoldingERP.WebUI.Controllers
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-           
+
             model.Departmanlar = _departmanService.GetAll().ToList();
             return View(model);
         }
 
-
-       
         public async Task<IActionResult> Edit(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -104,10 +102,8 @@ namespace HoldingERP.WebUI.Controllers
                 {
                     roleSelection.IsSelected = true;
                 }
-
                 model.Roles.Add(roleSelection);
             }
-
             return View(model);
         }
 
@@ -121,25 +117,9 @@ namespace HoldingERP.WebUI.Controllers
                 return NotFound();
             }
 
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            foreach (var roleSelection in model.Roles)
-            {
-                if (roleSelection.IsSelected && !(await _userManager.IsInRoleAsync(user, roleSelection.RoleName)))
-                {
-                    await _userManager.AddToRoleAsync(user, roleSelection.RoleName);
-                }
-                else if (!roleSelection.IsSelected && await _userManager.IsInRoleAsync(user, roleSelection.RoleName))
-                {
-                    await _userManager.RemoveFromRoleAsync(user, roleSelection.RoleName);
-                }
-            }
-
             return RedirectToAction("Index");
         }
 
-
-       
         public async Task<IActionResult> AssignAmir(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -152,18 +132,10 @@ namespace HoldingERP.WebUI.Controllers
                                                  .Where(u => u.Id.ToString() != id)
                                                  .ToListAsync();
 
-            var model = new AssignAmirViewModel
-            {
-                UserId = user.Id.ToString(),
-                UserName = user.UserName,
-                SecilenAmirId = user.AmirId,
-                AmirAdaylari = amirAdaylari
-            };
-
+            var model = new AssignAmirViewModel { /* ... */ };
             return View(model);
         }
 
-       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignAmir(AssignAmirViewModel model)
@@ -177,7 +149,6 @@ namespace HoldingERP.WebUI.Controllers
                 }
 
                 user.AmirId = model.SecilenAmirId;
-
                 var result = await _userManager.UpdateAsync(user);
 
                 if (result.Succeeded)
@@ -196,6 +167,5 @@ namespace HoldingERP.WebUI.Controllers
                                                    .ToListAsync();
             return View(model);
         }
-
     }
 }

@@ -1,6 +1,6 @@
 ﻿
-using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+
+using HoldingERP.Entities.Concrete;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

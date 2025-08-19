@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HoldingERP.Entities.Entities
+namespace HoldingERP.Entities.Concrete
 {
     public enum OnayTipi
     {

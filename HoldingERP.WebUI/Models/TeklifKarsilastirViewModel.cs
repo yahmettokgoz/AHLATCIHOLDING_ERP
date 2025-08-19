@@ -1,4 +1,4 @@
-﻿using HoldingERP.Entities.Entities;
+﻿using HoldingERP.Entities.Concrete;
 
 namespace HoldingERP.WebUI.Models
 {

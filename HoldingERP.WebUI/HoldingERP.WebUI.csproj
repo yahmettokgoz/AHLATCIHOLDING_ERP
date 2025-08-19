@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HoldingERP.Business\HoldingERP.Business.csproj" />
+    <ProjectReference Include="..\HoldingERP.DataAccess\HoldingERP.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

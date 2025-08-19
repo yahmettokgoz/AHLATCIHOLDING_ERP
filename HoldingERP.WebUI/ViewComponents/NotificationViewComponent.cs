@@ -1,19 +1,20 @@
 ﻿using HoldingERP.Business.Abstract;
-using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+using HoldingERP.Entities.Concrete;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HoldingERP.WebUI.ViewComponents
 {
-    public class NotificationViewComponent:ViewComponent
+    public class NotificationViewComponent : ViewComponent
     {
-        private readonly IGenericService<SatinAlmaTalebi> _talepService;
+        private readonly ITalepService _talepService;
         private readonly UserManager<Kullanici> _userManager;
 
         public NotificationViewComponent(
-            IGenericService<SatinAlmaTalebi> talepService,
+            ITalepService talepService, 
             UserManager<Kullanici> userManager)
         {
             _talepService = talepService;
@@ -22,11 +23,15 @@ namespace HoldingERP.WebUI.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var currentUser = await _userManager.GetUserAsync((System.Security.Claims.ClaimsPrincipal)User);
-
-            if (currentUser == null)
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
             {
                 return View(0); 
+            }
+
+            var currentUser = await _userManager.GetUserAsync((System.Security.Claims.ClaimsPrincipal)User);
+            if (currentUser == null)
+            {
+                return View(0);
             }
 
             var astlarinIdleri = await _userManager.Users
@@ -34,14 +39,19 @@ namespace HoldingERP.WebUI.ViewComponents
                                                    .Select(u => u.Id)
                                                    .ToListAsync();
 
-            var onayBekleyenTalepSayisi = _talepService.Find(
-                t => t.Durum == TalepDurumu.AmirOnayiBekliyor &&
-                     astlarinIdleri.Contains(t.TalepEdenKullaniciId)
-            ).Count();
+            var sorgu = _talepService.GetAll(); 
+            int onayBekleyenTalepSayisi = 0;
 
             if (await _userManager.IsInRoleAsync(currentUser, "Admin"))
             {
-                onayBekleyenTalepSayisi = _talepService.Find(t => t.Durum == TalepDurumu.AmirOnayiBekliyor).Count();
+                onayBekleyenTalepSayisi = sorgu.Count(t => t.Durum == TalepDurumu.AmirOnayiBekliyor || t.Durum == TalepDurumu.YoneticiOnayiBekliyor);
+            }
+            else if (await _userManager.IsInRoleAsync(currentUser, "Onaycı"))
+            {
+                onayBekleyenTalepSayisi = sorgu.Count(t =>
+                    (t.Durum == TalepDurumu.AmirOnayiBekliyor && astlarinIdleri.Contains(t.TalepEdenKullaniciId)) ||
+                    (t.Durum == TalepDurumu.YoneticiOnayiBekliyor)
+                );
             }
 
             return View(onayBekleyenTalepSayisi);

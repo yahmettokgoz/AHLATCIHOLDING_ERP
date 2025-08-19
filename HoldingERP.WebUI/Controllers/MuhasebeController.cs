@@ -1,41 +1,40 @@
 ﻿using HoldingERP.Business.Abstract;
-using HoldingERP.Entities;
-using HoldingERP.Entities.Entities;
+using HoldingERP.Entities.Concrete;
 using HoldingERP.WebUI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static HoldingERP.Entities.Entities.Teklif;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using static HoldingERP.Entities.Concrete.Teklif;
 
 namespace HoldingERP.WebUI.Controllers
 {
-        [Authorize(Roles = "Admin, Muhasebe")]
+    [Authorize(Roles = "Admin, Muhasebe")]
     public class MuhasebeController : Controller
     {
-
-        private readonly IGenericService<SatinAlmaTalebi> _talepService;
-        private readonly IGenericService<Teklif> _teklifService;
-        private readonly IGenericService<Fatura> _faturaService;
-        private readonly IGenericService<Stok> _stokService;
-        private readonly IGenericService<StokHareketi> _stokHareketiService;
+        private readonly ITalepService _talepService;
+        private readonly ITeklifService _teklifService;
+        private readonly IFaturaService _faturaService;
+        private readonly IStokService _stokService;
         private readonly UserManager<Kullanici> _userManager;
 
         public MuhasebeController(
-            IGenericService<SatinAlmaTalebi> talepService,
-            IGenericService<Teklif> teklifService,
-            IGenericService<Fatura> faturaService,
-            IGenericService<Stok> stokService,
-            IGenericService<StokHareketi> stokHareketiService,
+            ITalepService talepService,
+            ITeklifService teklifService,
+            IFaturaService faturaService,
+            IStokService stokService,
             UserManager<Kullanici> userManager)
         {
             _talepService = talepService;
             _teklifService = teklifService;
             _faturaService = faturaService;
             _stokService = stokService;
-            _stokHareketiService = stokHareketiService;
             _userManager = userManager;
         }
+
 
         public IActionResult Index()
         {
@@ -131,7 +130,7 @@ namespace HoldingERP.WebUI.Controllers
                     IslemiYapanKullaniciId = currentUser.Id,
                     SatinAlmaTalebiId = TalepId
                 };
-                _stokHareketiService.Create(hareket);
+                _stokService.FaturaIleStokGirisiYap(fatura, onaylanmisTeklif.TeklifKalemleri, TalepId, currentUser.Id);
             }
 
             if (anaTalep != null)

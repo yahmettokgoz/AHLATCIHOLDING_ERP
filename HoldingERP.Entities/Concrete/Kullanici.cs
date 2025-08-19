@@ -1,10 +1,9 @@
-﻿using HoldingERP.Entities.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 
 
-namespace HoldingERP.Entities
+namespace HoldingERP.Entities.Concrete
 {
    
     public class Kullanici : IdentityUser<int>

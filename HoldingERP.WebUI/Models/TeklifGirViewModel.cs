@@ -1,4 +1,4 @@
-﻿using HoldingERP.Entities.Entities;
+﻿using HoldingERP.Entities.Concrete;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,8 +18,8 @@ namespace HoldingERP.WebUI.Models
     public class TeklifModel
     {
         [Required(ErrorMessage = "Lütfen bir tedarikçi adı giriniz.")]
-        [Display(Name = "Tedarikçi")]
-        public string TedarikciAdi { get; set; } = string.Empty;
+        [Display(Name = "Tedarikçi Adı")]
+        public string TedarikciAdi { get; set; } = string.Empty; 
 
         public List<TeklifKalemModel> TeklifKalemleri { get; set; }
 
@@ -34,7 +34,6 @@ namespace HoldingERP.WebUI.Models
         public int TalepId { get; set; }
         public string? TalepAciklamasi { get; set; }
         public List<TeklifModel> GirilenTeklifler { get; set; }
-
         public IEnumerable<SatinAlmaTalepUrunu>? TalepUrunleri { get; set; }
 
         public TeklifGirViewModel()

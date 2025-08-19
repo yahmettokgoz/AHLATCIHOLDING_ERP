@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HoldingERP.DataAccess\HoldingERP.DataAccess.csproj" />
+    <ProjectReference Include="..\HoldingERP.Entities\HoldingERP.Entities.csproj" />
   </ItemGroup>
 
 </Project>
