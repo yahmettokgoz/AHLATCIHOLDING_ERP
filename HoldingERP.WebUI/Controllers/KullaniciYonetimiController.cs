@@ -132,7 +132,17 @@ namespace HoldingERP.WebUI.Controllers
                                                  .Where(u => u.Id.ToString() != id)
                                                  .ToListAsync();
 
-            var model = new AssignAmirViewModel { /* ... */ };
+            var model = new AssignAmirViewModel
+            {
+                UserId = user.Id.ToString(),
+                UserName = user.UserName,
+                SecilenAmirId = user.AmirId,
+
+                // Amir adayları listesini dolduruyoruz.
+                AmirAdaylari = await _userManager.Users
+                                                     .Where(u => u.Id.ToString() != id)
+                                                     .ToListAsync() ?? new List<Kullanici>()
+            };
             return View(model);
         }
 
