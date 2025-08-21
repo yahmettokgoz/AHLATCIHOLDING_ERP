@@ -1,38 +1,54 @@
 ﻿@model HoldingERP.WebUI.Models.LoginViewModel
 
-
 @{
+    Layout = null;
     ViewData["Title"] = "Giriş Yap";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-6">
-        <section>
-            <form asp-action="Login" method="post">
-                <h4>Giriş yapmak için hesabınızı kullanın.</h4>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group mb-2">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-                <div class="form-group mb-2">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" asp-for="RememberMe" />
-                    <label class="form-check-label" asp-for="RememberMe"></label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Giriş Yap</button>
-                </div>
-                <div classa="mt-3">
-                </div>
-            </form>
-        </section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ahlatcı Holding ERP</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/custom-login.css" />
+</head>
+<body class="login-page">
+
+    <div class="login-container">
+        <div>
+            <img src="~/assets/img/illustrations/ahlatci_logo.jpg" alt="Ahlatcı Holding Logo" class="login-logo" />
+        </div>
+
+        <h2 class="mb-1">Giriş Yap</h2>
+        <p class="text-muted mb-4">Hesabınız yok mu? Yönetici ile iletişime geçin.</p>
+
+        <form asp-action="Login" method="post" class="text-start">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Email" class="form-control" placeholder="E-posta" />
+                <label asp-for="Email"></label>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Password" class="form-control" placeholder="Şifre" />
+                <label asp-for="Password"></label>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" asp-for="RememberMe" />
+                <label class="form-check-label" asp-for="RememberMe"></label>
+            </div>
+            <div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Giriş Yap</button>
+            </div>
+        </form>
     </div>
-</div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+﻿body.login-page {
+    background-color: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 480px;
+    padding: 40px;
+    background-color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.login-logo {
+    /* --- 1. DEĞİŞİKLİK: Logoyu büyüttük --- */
+    max-width: 400px; /* 250px'den 300px'e çıkarıldı */
+    margin-bottom: 25px;
+}
+
+.login-container h2.mb-1 {
+    margin-bottom: 1.5rem !important; /* Bootstrap'i ezmek için !important ekledik */
+}
