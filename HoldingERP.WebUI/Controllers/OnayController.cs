@@ -41,24 +41,22 @@ namespace HoldingERP.WebUI.Controllers
 
             var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
 
-            IQueryable<SatinAlmaTalebi> filtrelenmisSorgu; // Tip ataması için yeni değişken
+            IQueryable<SatinAlmaTalebi> filtrelenmisSorgu;
 
             if (isAdmin)
             {
-                // Admin tüm onayları görür
                 filtrelenmisSorgu = sorgu.Where(t => t.Durum == TalepDurumu.AmirOnayiBekliyor ||
-                                                     t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || // YENİ DURUM
-                                                     t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || // YENİ DURUM
-                                                     t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor); // YENİ DURUM
+                                                     t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || 
+                                                     t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || 
+                                                     t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor); 
             }
-            else // Sadece Onaycı
+            else 
             {
-                // Onaycı, kendi astlarının amir onaylarını ve tüm üst düzey onayları görür.
                 filtrelenmisSorgu = sorgu.Where(t =>
                     (t.Durum == TalepDurumu.AmirOnayiBekliyor && astlarinIdleri.Contains(t.TalepEdenKullaniciId)) ||
-                    t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || // YENİ DURUM
-                    t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || // YENİ DURUM
-                    t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor // YENİ DURUM
+                    t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || 
+                    t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || 
+                    t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor 
                 );
             }
 
@@ -106,20 +104,17 @@ namespace HoldingERP.WebUI.Controllers
                     break;
                 case TalepDurumu.GenelMudurOnayiBekliyor:
                 case TalepDurumu.YonetimKuruluOnayiBekliyor:
-                    talep.Durum = TalepDurumu.MuhasebeSürecinde; // YENİ DURUM
+                    talep.Durum = TalepDurumu.MuhasebeSürecinde; 
                     break;
                 case TalepDurumu.MuhasebeMüdürüOnayiBekliyor:
-                    // Muhasebe onayı sonrası, durumu "Onaylandi" olan seçilmiş teklifi bul.
-                    var secilenTeklif = _teklifService.Get(t => t.SatinAlmaTalebiId == talepId && t.Durum == TeklifDurumu.Onaylandi); // HATA BURADAYDI
+                    var secilenTeklif = _teklifService.Get(t => t.SatinAlmaTalebiId == talepId && t.Durum == TeklifDurumu.Onaylandi); 
 
                     if (secilenTeklif != null)
                     {
-                        // Bulunan bu teklifin durumunu "FaturaKesildi" olarak güncelle.
                         secilenTeklif.Durum = TeklifDurumu.FaturaKesildi;
                         _teklifService.Update(secilenTeklif);
                     }
 
-                    // Ana talebin durumunu da "FaturaKesildi" yap.
                     talep.Durum = TalepDurumu.FaturaKesildi;
                     break;
             }

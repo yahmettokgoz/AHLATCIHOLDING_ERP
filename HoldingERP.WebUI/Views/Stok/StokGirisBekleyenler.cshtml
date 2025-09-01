@@ -14,7 +14,7 @@
             <th>Departman</th>
             <th>Talep Tarihi</th>
             <th>Açıklama</th>
-            <th style="width: 150px;">İşlemler</th>
+            <th style="width: 160px;">İşlem</th>
         </tr>
     </thead>
     <tbody>
@@ -27,19 +27,12 @@
                 <td>@talep.TalepTarihi.ToShortDateString()</td>
                 <td>@talep.Aciklama</td>
                 <td>
-                    <a asp-action="FaturaGir" asp-route-id="@talep.Id" class="btn btn-primary btn-sm">Fatura ve Stok Girişi</a>
-                </td>
-                <td>
                     <form asp-action="StokGirisiYap" method="post">
                         <input type="hidden" name="talepId" value="@talep.Id" />
-                        <button type="submit" class="btn btn-success btn-sm">Stoğa Giriş Yapıldı</button>
+                        <button type="submit" class="btn btn-success btn-sm">Stoğa Giriş Yap</button>
                     </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-
-
-

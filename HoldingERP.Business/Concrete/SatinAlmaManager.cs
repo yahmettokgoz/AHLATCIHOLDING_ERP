@@ -39,23 +39,19 @@ namespace HoldingERP.Business.Concrete
                 _teklifRepository.Update(teklif);
             }
 
-            // Seçilen teklifin kendisini "Onaylandi" olarak işaretle (Satın Alma Md. tarafından)
             secilenTeklif.Durum = TeklifDurumu.Onaylandi;
             _teklifRepository.Update(secilenTeklif);
 
-            // --- YENİ VE DOĞRU MALİYET KONTROLÜ ---
-            decimal yonetimKuruluLimiti = 1000000; // 1 Milyon TL
+            decimal yonetimKuruluLimiti = 1000000;
             string successMessage;
 
             if (secilenTeklif.ToplamFiyat < yonetimKuruluLimiti)
             {
-                // LİMİT AŞILMADI -> Genel Müdür Onayına Git
                 anaTalep.Durum = TalepDurumu.GenelMudurOnayiBekliyor;
                 successMessage = "Teklif seçildi ve Genel Müdür onayına gönderildi.";
             }
             else
             {
-                // LİMİT AŞILDI -> Yönetim Kurulu Başkanı Onayına Git
                 anaTalep.Durum = TalepDurumu.YonetimKuruluOnayiBekliyor;
                 successMessage = "Teklif seçildi. Tutar limiti aştığı için Yönetim Kurulu Başkanı onayına gönderildi.";
             }

@@ -32,6 +32,8 @@ builder.Services.AddScoped<ITedarikciService, TedarikciManager>();
 builder.Services.AddScoped<ITeklifService, TeklifManager>();
 builder.Services.AddScoped<IUrunService, UrunManager>();
 builder.Services.AddScoped<ITalepUrunService, TalepUrunManager>();
+builder.Services.AddScoped<IStokHareketiService, StokHareketiManager>();
+
 
 var app = builder.Build();
 

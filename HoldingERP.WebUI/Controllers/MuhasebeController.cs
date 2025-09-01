@@ -84,7 +84,7 @@ namespace HoldingERP.WebUI.Controllers
             }
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var onaylanmisTeklif = _teklifService.GetById(TeklifId); // Sadece Id ile bulmak yeterli
+            var onaylanmisTeklif = _teklifService.GetById(TeklifId); 
 
             if (onaylanmisTeklif == null)
             {
@@ -92,7 +92,6 @@ namespace HoldingERP.WebUI.Controllers
                 return RedirectToAction("Index");
             }
 
-            // 1. Yeni Fatura Nesnesini Oluştur ve Veritabanına Ekle
             var fatura = new Fatura
             {
                 FaturaNo = FaturaNo,
@@ -102,16 +101,13 @@ namespace HoldingERP.WebUI.Controllers
                 KayitTarihi = DateTime.Now
             };
             _faturaService.Create(fatura);
-
-            // 2. Ana Talebin Durumunu "MuhasebeMüdürüOnayiBekliyor" Olarak Güncelle
-            // Stok işlemleri bu aşamada yapılmayacak.
+          
             if (anaTalep != null)
             {
                 anaTalep.Durum = TalepDurumu.MuhasebeMüdürüOnayiBekliyor;
                 _talepService.Update(anaTalep);
             }
 
-            // 3. Tüm Değişiklikleri (yeni fatura ve durum güncellemesi) Veritabanına Yaz
             _talepService.SaveChanges();
 
             TempData["SuccessMessage"] = "Fatura bilgileri başarıyla kaydedildi ve Muhasebe Müdürü onayına gönderildi.";

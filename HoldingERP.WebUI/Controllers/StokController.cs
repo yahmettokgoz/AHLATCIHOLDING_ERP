@@ -20,8 +20,9 @@ namespace HoldingERP.WebUI.Controllers
         private readonly ITalepService _talepService;
         private readonly ITeklifService _teklifService;
         private readonly IFaturaService _faturaService;
+        
 
-        public StokController(IStokService stokService, IDepartmanService departmanService, IStokHareketiService stokHareketiService, UserManager<Kullanici> userManager, ITalepService talepService, ITeklifService teklifService) // Güncellendi
+        public StokController(IStokService stokService, IDepartmanService departmanService, IStokHareketiService stokHareketiService, UserManager<Kullanici> userManager, ITalepService talepService, ITeklifService teklifService, IFaturaService faturaService) 
         {
             _stokService = stokService;
             _departmanService = departmanService;
@@ -29,6 +30,7 @@ namespace HoldingERP.WebUI.Controllers
             _userManager = userManager;
             _talepService = talepService;
             _teklifService = teklifService;
+            _faturaService = faturaService;
         }
 
         public IActionResult Index()
@@ -96,7 +98,6 @@ namespace HoldingERP.WebUI.Controllers
 
         public IActionResult StokGirisBekleyenler()
         {
-            // ITalepService'i constructor'a eklememiz gerekecek.
             var girisBekleyenTalepler = _talepService.GetAll()
                 .Include(t => t.TalepEdenKullanici.Departman)
                 .Where(t => t.Durum == TalepDurumu.FaturaKesildi)
@@ -115,17 +116,15 @@ namespace HoldingERP.WebUI.Controllers
                 return RedirectToAction(nameof(StokGirisBekleyenler));
             }
 
-            // Bu talebe ait onaylanmış ve faturası kesilmiş teklifi bul
-            var onaylanmisTeklif = _teklifService.GetAll() // ITeklifService de enjekte edilmeli
+            var onaylanmisTeklif = _teklifService.GetAll() 
                                             .Include(t => t.TeklifKalemleri)
                                             .FirstOrDefault(t => t.SatinAlmaTalebiId == talepId && t.Durum == TeklifDurumu.FaturaKesildi);
 
-            if (onaylanmisTeklif == null) { /* Hata yönetimi */ }
+            if (onaylanmisTeklif == null) { }
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var fatura = _faturaService.Get(f => f.TeklifId == onaylanmisTeklif.Id); // IFaturaService de enjekte edilmeli
+            var fatura = _faturaService.Get(f => f.TeklifId == onaylanmisTeklif.Id); 
 
-            // --- STOK GÜNCELLEME MANTIĞI BURADA ---
             _stokService.FaturaIleStokGirisiYap(fatura, onaylanmisTeklif.TeklifKalemleri, talepId, currentUser.Id);
 
             anaTalep.Durum = TalepDurumu.StoktaMevcut;
