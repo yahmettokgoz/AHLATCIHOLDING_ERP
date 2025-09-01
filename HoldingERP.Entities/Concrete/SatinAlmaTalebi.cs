@@ -8,14 +8,18 @@ namespace HoldingERP.Entities.Concrete
 {
     public enum TalepDurumu
     {
-        Beklemede,
-        AmirOnayiBekliyor,
-        SatınAlmada,
-        TeklifBekleniyor,
-        YoneticiOnayiBekliyor,
-        Onaylandi,
-        Reddedildi,
-        Tamamlandi
+        Beklemede = 0,
+        AmirOnayiBekliyor = 1,
+        Reddedildi = 2,
+        SatınAlmada = 3,
+        TeklifBekleniyor = 4,
+        GenelMudurOnayiBekliyor = 5,
+        YonetimKuruluOnayiBekliyor = 6,
+        MuhasebeSürecinde = 7,
+        MuhasebeMüdürüOnayiBekliyor = 8,
+        FaturaKesildi = 9,
+        StoktaMevcut = 10,
+        Tamamlandi = 11
     }
 
     public class SatinAlmaTalebi

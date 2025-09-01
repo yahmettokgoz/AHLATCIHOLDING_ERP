@@ -25,7 +25,7 @@ namespace HoldingERP.WebUI.ViewComponents
         {
             if (User.Identity == null || !User.Identity.IsAuthenticated)
             {
-                return View(0); 
+                return View(0);
             }
 
             var currentUser = await _userManager.GetUserAsync((System.Security.Claims.ClaimsPrincipal)User);
@@ -34,23 +34,31 @@ namespace HoldingERP.WebUI.ViewComponents
                 return View(0);
             }
 
-            var astlarinIdleri = await _userManager.Users
-                                                   .Where(u => u.AmirId == currentUser.Id)
-                                                   .Select(u => u.Id)
-                                                   .ToListAsync();
-
-            var sorgu = _talepService.GetAll(); 
+            var sorgu = _talepService.GetAll();
             int onayBekleyenTalepSayisi = 0;
 
             if (await _userManager.IsInRoleAsync(currentUser, "Admin"))
             {
-                onayBekleyenTalepSayisi = sorgu.Count(t => t.Durum == TalepDurumu.AmirOnayiBekliyor || t.Durum == TalepDurumu.YoneticiOnayiBekliyor);
+                // Admin tüm onay bekleyenleri sayar
+                onayBekleyenTalepSayisi = sorgu.Count(t =>
+                    t.Durum == TalepDurumu.AmirOnayiBekliyor ||
+                    t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || // YENİ
+                    t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || // YENİ
+                    t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor); // YENİ
             }
             else if (await _userManager.IsInRoleAsync(currentUser, "Onaycı"))
             {
+                // Onaycı kendi astlarınınkini ve diğer yönetici onaylarını sayar
+                var astlarinIdleri = await _userManager.Users
+                                                       .Where(u => u.AmirId == currentUser.Id)
+                                                       .Select(u => u.Id)
+                                                       .ToListAsync();
+
                 onayBekleyenTalepSayisi = sorgu.Count(t =>
                     (t.Durum == TalepDurumu.AmirOnayiBekliyor && astlarinIdleri.Contains(t.TalepEdenKullaniciId)) ||
-                    (t.Durum == TalepDurumu.YoneticiOnayiBekliyor)
+                    t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || // YENİ
+                    t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || // YENİ
+                    t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor // YENİ
                 );
             }
 

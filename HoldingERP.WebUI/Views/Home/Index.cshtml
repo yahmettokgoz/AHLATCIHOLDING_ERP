@@ -4,18 +4,13 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="row">
+<div class="row g-4">
 
     @if (User.IsInRole("Admin") || User.IsInRole("Onaycı"))
     {
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
+        <div class="col-12 col-sm-6 col-lg-3 d-flex">
+            <div class="card h-100 w-100">
                 <div class="card-body">
-                    <div class="card-title d-flex align-items-start justify-content-between">
-                        <div class="avatar flex-shrink-0">
-                            <i class="bx bx-check-shield bx-lg text-warning"></i>
-                        </div>
-                    </div>
                     <span class="fw-semibold d-block mb-1">Onay Bekleyen Talepler</span>
                     <h3 class="card-title mb-2">@Model.OnayBekleyenTalepSayisi</h3>
                 </div>
@@ -25,16 +20,17 @@
 
     @if (User.IsInRole("Admin") || User.IsInRole("Satın Almacı"))
     {
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
+        <div class="col-12 col-sm-6 col-lg-3 d-flex">
+            <div class="card h-100 w-100">
                 <div class="card-body">
                     <span class="fw-semibold d-block mb-1">Yeni Satın Alma Talepleri</span>
                     <h3 class="card-title text-primary mb-2">@Model.IslemBekleyenSatinAlmaTalepSayisi</h3>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
+
+        <div class="col-12 col-sm-6 col-lg-3 d-flex">
+            <div class="card h-100 w-100">
                 <div class="card-body">
                     <span class="fw-semibold d-block mb-1">Teklif Bekleyenler</span>
                     <h3 class="card-title text-info mb-2">@Model.TeklifBekleyenTalepSayisi</h3>
@@ -45,8 +41,8 @@
 
     @if (User.IsInRole("Talep Eden"))
     {
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
+        <div class="col-12 col-sm-6 col-lg-3 d-flex">
+            <div class="card h-100 w-100">
                 <div class="card-body">
                     <span class="fw-semibold d-block mb-1">Aktif Taleplerim</span>
                     <h3 class="card-title text-success mb-2">@Model.KullanicininAktifTalepSayisi</h3>
@@ -57,7 +53,7 @@
 
 </div>
 
-<div class="card">
+<div class="card mt-4">
     <h5 class="card-header">Sistemdeki Son Talepler</h5>
     <div class="table-responsive text-nowrap">
         <table class="table">

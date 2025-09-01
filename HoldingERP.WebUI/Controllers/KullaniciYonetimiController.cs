@@ -116,7 +116,25 @@ namespace HoldingERP.WebUI.Controllers
             {
                 return NotFound();
             }
+            
+            var userRoles = await _userManager.GetRolesAsync(user);
 
+            foreach (var roleSelection in model.Roles)
+            {
+                
+                if (roleSelection.IsSelected && !(await _userManager.IsInRoleAsync(user, roleSelection.RoleName)))
+                {
+                    await _userManager.AddToRoleAsync(user, roleSelection.RoleName);
+                }
+               
+                else if (!roleSelection.IsSelected && await _userManager.IsInRoleAsync(user, roleSelection.RoleName))
+                {
+                    await _userManager.RemoveFromRoleAsync(user, roleSelection.RoleName);
+                }
+            }
+
+
+            TempData["SuccessMessage"] = $"'{user.UserName}' kullanıcısının rolleri başarıyla güncellendi.";
             return RedirectToAction("Index");
         }
 
@@ -138,7 +156,6 @@ namespace HoldingERP.WebUI.Controllers
                 UserName = user.UserName,
                 SecilenAmirId = user.AmirId,
 
-                // Amir adayları listesini dolduruyoruz.
                 AmirAdaylari = await _userManager.Users
                                                      .Where(u => u.Id.ToString() != id)
                                                      .ToListAsync() ?? new List<Kullanici>()

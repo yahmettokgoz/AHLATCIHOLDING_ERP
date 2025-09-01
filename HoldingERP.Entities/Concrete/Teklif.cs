@@ -10,10 +10,11 @@ namespace HoldingERP.Entities.Concrete
     {
         public enum TeklifDurumu
         {
-            Beklemede,   
-            Secildi,     
-            Onaylandi,   
-            Reddedildi   
+            Beklemede,   // Satın almacı tarafından yeni girildi veya yönetici onayını bekliyor
+            Secildi,     // Bu artık kullanılmıyor, kaldırılabilir veya tutulabilir.
+            Onaylandi,   // Satın Alma Müdürü'nün seçtiği ve limit altı olduğu için onaylanan
+            Reddedildi,  // Reddedilen
+            FaturaKesildi // YENİ EKLENDİ - Muhasebe tarafından işlemi biten
         }
 
         public Teklif()

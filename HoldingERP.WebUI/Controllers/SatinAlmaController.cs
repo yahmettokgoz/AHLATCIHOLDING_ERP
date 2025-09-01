@@ -216,7 +216,16 @@ namespace HoldingERP.WebUI.Controllers
         public IActionResult TeklifiSec(int secilenTeklifId)
         {
             var resultMessage = _satinAlmaService.TeklifiSecVeSüreciIlerlet(secilenTeklifId);
-            TempData["SuccessMessage"] = resultMessage;
+
+            if (resultMessage.StartsWith("Hata:"))
+            {
+                TempData["ErrorMessage"] = resultMessage;
+            }
+            else
+            {
+                TempData["SuccessMessage"] = resultMessage;
+            }
+
             return RedirectToAction("TeklifleriDegerlendirListesi");
         }
     }

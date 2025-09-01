@@ -1,15 +1,12 @@
-﻿@using HoldingERP.Entities.Concrete
-@model IEnumerable<SatinAlmaTalebi>
+﻿@model IEnumerable<HoldingERP.Entities.Concrete.SatinAlmaTalebi>
 
 @{
-    ViewData["Title"] = "Fatura Girişi Bekleyen Talepler";
+    ViewData["Title"] = "Stoğa Giriş Bekleyen Ürünler";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<p>Aşağıdaki onaylanmış talepler için fatura ve stok girişi yapılması gerekmektedir.</p>
-
-<table class="table table-hover">
+<table class="table">
     <thead>
         <tr>
             <th>Talep No</th>
@@ -30,9 +27,19 @@
                 <td>@talep.TalepTarihi.ToShortDateString()</td>
                 <td>@talep.Aciklama</td>
                 <td>
-                    <a  asp-action="FaturaGir" asp-route-id="@talep.Id" class="btn btn-primary btn-sm">Fatura ve Stok Girişi</a>
+                    <a asp-action="FaturaGir" asp-route-id="@talep.Id" class="btn btn-primary btn-sm">Fatura ve Stok Girişi</a>
+                </td>
+                <td>
+                    <form asp-action="StokGirisiYap" method="post">
+                        <input type="hidden" name="talepId" value="@talep.Id" />
+                        <button type="submit" class="btn btn-success btn-sm">Stoğa Giriş Yapıldı</button>
+                    </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+
+
+

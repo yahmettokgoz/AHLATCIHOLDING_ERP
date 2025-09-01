@@ -24,10 +24,10 @@ namespace HoldingERP.Business.Concrete
         public string TeklifiSecVeSüreciIlerlet(int secilenTeklifId)
         {
             var secilenTeklif = _teklifRepository.GetById(secilenTeklifId);
-            if (secilenTeklif == null) return "Seçilen teklif bulunamadı.";
+            if (secilenTeklif == null) return "Hata: Seçilen teklif bulunamadı.";
 
             var anaTalep = _talepRepository.GetById(secilenTeklif.SatinAlmaTalebiId);
-            if (anaTalep == null) return "İlişkili ana talep bulunamadı.";
+            if (anaTalep == null) return "Hata: İlişkili ana talep bulunamadı.";
 
             var digerTeklifler = _teklifRepository
                 .Find(t => t.SatinAlmaTalebiId == anaTalep.Id && t.Id != secilenTeklifId)
@@ -39,26 +39,29 @@ namespace HoldingERP.Business.Concrete
                 _teklifRepository.Update(teklif);
             }
 
-            decimal limit = 100000;
+            // Seçilen teklifin kendisini "Onaylandi" olarak işaretle (Satın Alma Md. tarafından)
+            secilenTeklif.Durum = TeklifDurumu.Onaylandi;
+            _teklifRepository.Update(secilenTeklif);
+
+            // --- YENİ VE DOĞRU MALİYET KONTROLÜ ---
+            decimal yonetimKuruluLimiti = 1000000; // 1 Milyon TL
             string successMessage;
 
-            if (secilenTeklif.ToplamFiyat > limit)
+            if (secilenTeklif.ToplamFiyat < yonetimKuruluLimiti)
             {
-                secilenTeklif.Durum = TeklifDurumu.Beklemede;
-                anaTalep.Durum = TalepDurumu.YoneticiOnayiBekliyor;
-                successMessage = $"Teklif seçildi. Tutar ({secilenTeklif.ToplamFiyat:C}) limiti aştığı için yönetici onayına gönderildi.";
+                // LİMİT AŞILMADI -> Genel Müdür Onayına Git
+                anaTalep.Durum = TalepDurumu.GenelMudurOnayiBekliyor;
+                successMessage = "Teklif seçildi ve Genel Müdür onayına gönderildi.";
             }
             else
             {
-                secilenTeklif.Durum = TeklifDurumu.Onaylandi;
-                anaTalep.Durum = TalepDurumu.Onaylandi;
-                successMessage = $"'{secilenTeklif.Tedarikci?.Ad}' tedarikçisinin teklifi başarıyla seçildi ve talep onaylandı.";
+                // LİMİT AŞILDI -> Yönetim Kurulu Başkanı Onayına Git
+                anaTalep.Durum = TalepDurumu.YonetimKuruluOnayiBekliyor;
+                successMessage = "Teklif seçildi. Tutar limiti aştığı için Yönetim Kurulu Başkanı onayına gönderildi.";
             }
 
-            _teklifRepository.Update(secilenTeklif);
             _talepRepository.Update(anaTalep);
-
-            _talepRepository.SaveChanges(); // Değişiklikleri kaydet
+            _talepRepository.SaveChanges();
 
             return successMessage;
         }

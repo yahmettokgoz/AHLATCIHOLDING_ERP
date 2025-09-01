@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using static HoldingERP.Entities.Concrete.Teklif;
 
 namespace HoldingERP.WebUI.Controllers
 {
@@ -16,13 +17,18 @@ namespace HoldingERP.WebUI.Controllers
         private readonly IDepartmanService _departmanService; 
         private readonly IStokHareketiService _stokHareketiService; 
         private readonly UserManager<Kullanici> _userManager;
+        private readonly ITalepService _talepService;
+        private readonly ITeklifService _teklifService;
+        private readonly IFaturaService _faturaService;
 
-        public StokController(IStokService stokService, IDepartmanService departmanService, IStokHareketiService stokHareketiService, UserManager<Kullanici> userManager) // Güncellendi
+        public StokController(IStokService stokService, IDepartmanService departmanService, IStokHareketiService stokHareketiService, UserManager<Kullanici> userManager, ITalepService talepService, ITeklifService teklifService) // Güncellendi
         {
             _stokService = stokService;
             _departmanService = departmanService;
             _stokHareketiService = stokHareketiService;
             _userManager = userManager;
+            _talepService = talepService;
+            _teklifService = teklifService;
         }
 
         public IActionResult Index()
@@ -86,6 +92,49 @@ namespace HoldingERP.WebUI.Controllers
             }
             model.Departmanlar = _departmanService.GetAll().ToList();
             return View(model);
+        }
+
+        public IActionResult StokGirisBekleyenler()
+        {
+            // ITalepService'i constructor'a eklememiz gerekecek.
+            var girisBekleyenTalepler = _talepService.GetAll()
+                .Include(t => t.TalepEdenKullanici.Departman)
+                .Where(t => t.Durum == TalepDurumu.FaturaKesildi)
+                .ToList();
+
+            return View(girisBekleyenTalepler);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StokGirisiYap(int talepId)
+        {
+            var anaTalep = _talepService.GetById(talepId);
+            if (anaTalep == null || anaTalep.Durum != TalepDurumu.FaturaKesildi)
+            {
+                return RedirectToAction(nameof(StokGirisBekleyenler));
+            }
+
+            // Bu talebe ait onaylanmış ve faturası kesilmiş teklifi bul
+            var onaylanmisTeklif = _teklifService.GetAll() // ITeklifService de enjekte edilmeli
+                                            .Include(t => t.TeklifKalemleri)
+                                            .FirstOrDefault(t => t.SatinAlmaTalebiId == talepId && t.Durum == TeklifDurumu.FaturaKesildi);
+
+            if (onaylanmisTeklif == null) { /* Hata yönetimi */ }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var fatura = _faturaService.Get(f => f.TeklifId == onaylanmisTeklif.Id); // IFaturaService de enjekte edilmeli
+
+            // --- STOK GÜNCELLEME MANTIĞI BURADA ---
+            _stokService.FaturaIleStokGirisiYap(fatura, onaylanmisTeklif.TeklifKalemleri, talepId, currentUser.Id);
+
+            anaTalep.Durum = TalepDurumu.StoktaMevcut;
+            _talepService.Update(anaTalep);
+
+            _talepService.SaveChanges();
+
+            TempData["SuccessMessage"] = "Ürünler stoğa başarıyla eklendi.";
+            return RedirectToAction(nameof(StokGirisBekleyenler));
         }
 
     }

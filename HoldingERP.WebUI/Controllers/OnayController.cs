@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
+using static HoldingERP.Entities.Concrete.Teklif;
 
 namespace HoldingERP.WebUI.Controllers
 {
@@ -40,20 +41,24 @@ namespace HoldingERP.WebUI.Controllers
 
             var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
 
-            IQueryable<SatinAlmaTalebi> filtrelenmisSorgu; 
+            IQueryable<SatinAlmaTalebi> filtrelenmisSorgu; // Tip ataması için yeni değişken
 
             if (isAdmin)
             {
-               
+                // Admin tüm onayları görür
                 filtrelenmisSorgu = sorgu.Where(t => t.Durum == TalepDurumu.AmirOnayiBekliyor ||
-                                                     t.Durum == TalepDurumu.YoneticiOnayiBekliyor);
+                                                     t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || // YENİ DURUM
+                                                     t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || // YENİ DURUM
+                                                     t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor); // YENİ DURUM
             }
-            else
+            else // Sadece Onaycı
             {
-               
+                // Onaycı, kendi astlarının amir onaylarını ve tüm üst düzey onayları görür.
                 filtrelenmisSorgu = sorgu.Where(t =>
                     (t.Durum == TalepDurumu.AmirOnayiBekliyor && astlarinIdleri.Contains(t.TalepEdenKullaniciId)) ||
-                    (t.Durum == TalepDurumu.YoneticiOnayiBekliyor)
+                    t.Durum == TalepDurumu.GenelMudurOnayiBekliyor || // YENİ DURUM
+                    t.Durum == TalepDurumu.YonetimKuruluOnayiBekliyor || // YENİ DURUM
+                    t.Durum == TalepDurumu.MuhasebeMüdürüOnayiBekliyor // YENİ DURUM
                 );
             }
 
@@ -68,10 +73,7 @@ namespace HoldingERP.WebUI.Controllers
                 .Include(t => t.TalepUrunleri).ThenInclude(tu => tu.Urun)
                 .FirstOrDefault(t => t.Id == id);
 
-            if (talep == null)
-            {
-                return NotFound();
-            }
+            if (talep == null) return NotFound();
 
             return View(talep);
         }
@@ -81,10 +83,7 @@ namespace HoldingERP.WebUI.Controllers
         public IActionResult Reject(int talepId)
         {
             var talep = _talepService.GetById(talepId);
-            if (talep == null)
-            {
-                return NotFound();
-            }
+            if (talep == null) return NotFound();
 
             talep.Durum = TalepDurumu.Reddedildi;
             _talepService.Update(talep);
@@ -98,12 +97,33 @@ namespace HoldingERP.WebUI.Controllers
         public IActionResult Approve(int talepId)
         {
             var talep = _talepService.GetById(talepId);
-            if (talep == null)
+            if (talep == null) return NotFound();
+
+            switch (talep.Durum)
             {
-                return NotFound();
+                case TalepDurumu.AmirOnayiBekliyor:
+                    talep.Durum = TalepDurumu.SatınAlmada;
+                    break;
+                case TalepDurumu.GenelMudurOnayiBekliyor:
+                case TalepDurumu.YonetimKuruluOnayiBekliyor:
+                    talep.Durum = TalepDurumu.MuhasebeSürecinde; // YENİ DURUM
+                    break;
+                case TalepDurumu.MuhasebeMüdürüOnayiBekliyor:
+                    // Muhasebe onayı sonrası, durumu "Onaylandi" olan seçilmiş teklifi bul.
+                    var secilenTeklif = _teklifService.Get(t => t.SatinAlmaTalebiId == talepId && t.Durum == TeklifDurumu.Onaylandi); // HATA BURADAYDI
+
+                    if (secilenTeklif != null)
+                    {
+                        // Bulunan bu teklifin durumunu "FaturaKesildi" olarak güncelle.
+                        secilenTeklif.Durum = TeklifDurumu.FaturaKesildi;
+                        _teklifService.Update(secilenTeklif);
+                    }
+
+                    // Ana talebin durumunu da "FaturaKesildi" yap.
+                    talep.Durum = TalepDurumu.FaturaKesildi;
+                    break;
             }
 
-            talep.Durum = TalepDurumu.SatınAlmada;
             _talepService.Update(talep);
             _talepService.SaveChanges();
 

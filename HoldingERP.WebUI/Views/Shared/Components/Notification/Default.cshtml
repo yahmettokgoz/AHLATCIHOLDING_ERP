@@ -2,18 +2,13 @@
 
 @if (User.Identity != null && User.Identity.IsAuthenticated)
 {
-    <li class="nav-item me-2">
-        <a class="nav-link text-dark position-relative" asp-controller="Onay" asp-action="Index" title="Onay Bekleyen Talepler">
+    <a class="dropdown-item" asp-controller="Onay" asp-action="Index">
+        <i class="bx bx-bell me-2"></i>
+        <span class="align-middle">Onay Bekleyenler</span>
 
-            <i class="fas fa-bell"></i> 
-
-            @if (Model > 0)
-            {
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65em;">
-                    @Model
-                    <span class="visually-hidden">onay bekleyen talep</span>
-                </span>
-            }
-        </a>
-    </li>
+        @if (Model > 0)
+        {
+            <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">@Model</span>
+        }
+    </a>
 }

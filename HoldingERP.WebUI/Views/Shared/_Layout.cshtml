@@ -66,7 +66,7 @@
                         <li class="menu-item @(controller == "Home" ? "active" : "")">
                             <a asp-controller="Home" asp-action="Index" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                                <div data-i18n="Analytics">Dashboard</div>
+                                <div data-i18n="Analytics">Ana Sayfa</div>
                             </a>
                         </li>
 
@@ -128,14 +128,27 @@
                             </li>
                         }
 
-                        <!-- Stok Yönetimi -->
                         @if (User.IsInRole("Admin") || User.IsInRole("Depo"))
                         {
-                            <li class="menu-item @(controller == "Stok" ? "active" : "")">
-                                <a asp-controller="Stok" asp-action="Index" class="menu-link">
+                            // "Stok" controller'ına ait sayfaları kontrol ediyoruz
+                            var isStokActive = controller == "Stok" ? "active open" : "";
+                            <li class="menu-item @isStokActive">
+                                <a href="javascript:void(0);" class="menu-link menu-toggle">
                                     <i class="menu-icon tf-icons bx bx-cube-alt"></i>
-                                    <div data-i18n="Basic">Stok Yönetimi</div>
+                                    <div data-i18n="Layouts">Stok Yönetimi</div>
                                 </a>
+                                <ul class="menu-sub">
+                                    <li class="menu-item @(action == "Index" && controller == "Stok" ? "active" : "")">
+                                        <a asp-controller="Stok" asp-action="Index" class="menu-link">
+                                            <div>Anlık Stok Durumu</div>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item @(action == "StokGirisBekleyenler" ? "active" : "")">
+                                        <a asp-controller="Stok" asp-action="StokGirisBekleyenler" class="menu-link">
+                                            <div>Stok Girişi Bekleyenler</div>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         }
 
@@ -159,7 +172,7 @@
                     }
                 </ul>
             </aside>
-            </aside>
+            
             <!-- / Menu -->
             <!-- Layout container -->
             <div class="layout-page">

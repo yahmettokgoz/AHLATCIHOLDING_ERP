@@ -40,8 +40,8 @@ namespace HoldingERP.WebUI.Controllers
         {
             var faturaBekleyenTalepler = _talepService.GetAll()
                 .Include(t => t.TalepEdenKullanici)
-                .ThenInclude(k => k.Departman)
-                .Where(t => t.Durum == TalepDurumu.Onaylandi)
+                    .ThenInclude(k => k.Departman)
+                .Where(t => t.Durum == TalepDurumu.MuhasebeSürecinde) 
                 .ToList();
             return View(faturaBekleyenTalepler);
         }
@@ -71,9 +71,9 @@ namespace HoldingERP.WebUI.Controllers
         public async Task<IActionResult> FaturaGir(int TalepId, int TeklifId, string FaturaNo, DateTime FaturaTarihi)
         {
             var anaTalep = _talepService.GetById(TalepId);
-            if (anaTalep != null && anaTalep.Durum == TalepDurumu.Tamamlandi)
+            if (anaTalep != null && anaTalep.Durum != TalepDurumu.MuhasebeSürecinde)
             {
-                TempData["ErrorMessage"] = "Bu talep zaten faturalandırılmış ve süreç tamamlanmıştır.";
+                TempData["ErrorMessage"] = "Bu talep fatura giriş aşamasında değil.";
                 return RedirectToAction("Index");
             }
 
@@ -84,9 +84,7 @@ namespace HoldingERP.WebUI.Controllers
             }
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var onaylanmisTeklif = _teklifService.GetAll()
-                                                .Include(t => t.TeklifKalemleri)
-                                                .FirstOrDefault(t => t.Id == TeklifId);
+            var onaylanmisTeklif = _teklifService.GetById(TeklifId); // Sadece Id ile bulmak yeterli
 
             if (onaylanmisTeklif == null)
             {
@@ -94,6 +92,7 @@ namespace HoldingERP.WebUI.Controllers
                 return RedirectToAction("Index");
             }
 
+            // 1. Yeni Fatura Nesnesini Oluştur ve Veritabanına Ekle
             var fatura = new Fatura
             {
                 FaturaNo = FaturaNo,
@@ -103,45 +102,19 @@ namespace HoldingERP.WebUI.Controllers
                 KayitTarihi = DateTime.Now
             };
             _faturaService.Create(fatura);
-            _faturaService.SaveChanges();
 
-            foreach (var kalem in onaylanmisTeklif.TeklifKalemleri)
-            {
-                var stok = _stokService.Get(s => s.UrunId == kalem.UrunId);
-                if (stok == null)
-                {
-                    stok = new Stok { UrunId = kalem.UrunId, Miktar = kalem.Miktar, Lokasyon = "Merkez Depo", GuncellemeTarihi = DateTime.Now };
-                    _stokService.Create(stok);
-                }
-                else
-                {
-                    stok.Miktar += kalem.Miktar;
-                    stok.GuncellemeTarihi = DateTime.Now;
-                    _stokService.Update(stok);
-                }
-
-                var hareket = new StokHareketi
-                {
-                    UrunId = kalem.UrunId,
-                    Miktar = kalem.Miktar,
-                    IslemTuru = IslemTuru.Giris,
-                    FaturaId = fatura.Id,
-                    Tarih = DateTime.Now,
-                    IslemiYapanKullaniciId = currentUser.Id,
-                    SatinAlmaTalebiId = TalepId
-                };
-                _stokService.FaturaIleStokGirisiYap(fatura, onaylanmisTeklif.TeklifKalemleri, TalepId, currentUser.Id);
-            }
-
+            // 2. Ana Talebin Durumunu "MuhasebeMüdürüOnayiBekliyor" Olarak Güncelle
+            // Stok işlemleri bu aşamada yapılmayacak.
             if (anaTalep != null)
             {
-                anaTalep.Durum = TalepDurumu.Tamamlandi;
+                anaTalep.Durum = TalepDurumu.MuhasebeMüdürüOnayiBekliyor;
                 _talepService.Update(anaTalep);
             }
 
+            // 3. Tüm Değişiklikleri (yeni fatura ve durum güncellemesi) Veritabanına Yaz
             _talepService.SaveChanges();
 
-            TempData["SuccessMessage"] = "Fatura başarıyla kaydedildi ve ürünler stoğa eklendi.";
+            TempData["SuccessMessage"] = "Fatura bilgileri başarıyla kaydedildi ve Muhasebe Müdürü onayına gönderildi.";
             return RedirectToAction("Index");
         }
     }
